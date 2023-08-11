@@ -17,6 +17,12 @@ const generateVerificationCode = async () => {
     return code;
 };
 
+const randomHaxNumber = () => {
+    const min = 100000; // Minimum value for a 6-digit number
+    const max = 999999; // Maximum value for a 6-digit number
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
 const isEmailVerified = async (mobileNumber) => {
     let userVerified = await User.findOne({ mobileNumber });
 
@@ -86,13 +92,13 @@ const sendVerificationCode = async (email, verificationCode) => {
 };
 
 const sendVerificationSMSCode = async (mobile, verificationCode) => {
-    client.messages
+    return client.messages
         .create({
             body: `Your verification Kotoamatsukami code ${verificationCode}`,
             from: "+14066254463",
             to: `+995${mobile}`
         })
-        .then(message => console.log(message, 'message'))
+        .then(message => console.log('SMS sent successfuly!'))
         .catch((err) => console.log(err))
 };
 
@@ -146,5 +152,6 @@ module.exports = {
     isEmailVerified,
     resendVerificationCode,
     verify,
-    sendVerificationSMSCode
+    sendVerificationSMSCode,
+    randomHaxNumber
 };
