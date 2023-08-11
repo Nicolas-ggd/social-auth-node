@@ -7,18 +7,20 @@ const ResetPassword = require('../models/ResetPasswordHash');
 const verificationHelper = require('../utils/verificationHelper');
 
 const randomHaxString = () => {
-    return Math.random().toString(36).substring(2, 10);
+    const min = 100000;
+    const max = 999999;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
 const resetUserPassword = async (req, res) => {
-    const { numberOrEmail } = req.body;
+    const { mobileNumber } = req.body;
 
     try {
-        if (!numberOrEmail) {
+        if (!mobileNumber) {
             return res.status(400).json({ message: "Email is requried to reset password" });
         }
 
-        const authUser = await User.findOne({ numberOrEmail });
+        const authUser = await User.findOne({ mobileNumber });
 
         if (!authUser) {
             return res.status(400).json({ message: "Wrong mobile or email, it doesn't exist in database" });
@@ -29,7 +31,7 @@ const resetUserPassword = async (req, res) => {
         const hexToken = await ResetPassword.create({ hash: randomToken });
 
         await User.updateOne(
-            { numberOrEmail: authUser.numberOrEmail },
+            { mobileNumber: authUser.mobileNumber },
             {
                 $set: {
                     ResetPasswordHash: hexToken._id.toString()
@@ -49,17 +51,20 @@ const resetUserPassword = async (req, res) => {
 
         const mailOptions = {
             from: 'Nicolas@example.com',
-            to: 'ggdnicolas@gmail.com',
+            to: mobileNumber,
             subject: 'Subject',
             html: resetPasswordTemplate(resetLink)
         };
 
-        if (!numberOrEmail.includes('@gmail.com')){
+        if (!mobileNumber.includes('@gmail.com')){
+            console.log('Number ')
             verificationHelper.sendVerificationSMSCode(numberOrEmail, randomToken);
         } else {
+            console.log('email ')
+            console.log(mailOptions, 'mailOptions')
             nodeTransporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    console.log(error)
+                    console.log(error, 'error brat')
                 } else {
                     console.log(`Email sent: ${info.response}`)
                 }

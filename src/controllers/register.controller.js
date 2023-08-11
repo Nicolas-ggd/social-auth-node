@@ -2,10 +2,10 @@ const User = require('../models/User');
 const verificationHelper = require('../utils/verificationHelper');
 
 const userRegister = async (req, res) => {
-    const { name, numberOrEmail, password } = req.body;
+    const { name, mobileNumber, password } = req.body;
 
     try {
-        const existedUser = await User.findOne({ numberOrEmail });
+        const existedUser = await User.findOne({ mobileNumber });
 
         if (existedUser) {
             res.status(400).json({
@@ -17,20 +17,20 @@ const userRegister = async (req, res) => {
 
         const userCreate = await User.create({
             name,
-            numberOrEmail,
+            mobileNumber,
             password,
             verificationCode
         });
 
         if (userCreate) {
-            if (numberOrEmail.includes('@gmail.com')) {
+            if (mobileNumber.includes('@gmail.com')) {
                 await verificationHelper.sendVerificationCode(
-                    numberOrEmail,
+                    mobileNumber,
                     verificationCode
                 );
             } else {
                 await verificationHelper.sendVerificationSMSCode(
-                    numberOrEmail,
+                    mobileNumber,
                     verificationCode
                 )
             }

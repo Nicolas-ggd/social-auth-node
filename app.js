@@ -12,6 +12,7 @@ const userAuth = require('./src/routes/auth.routes');
 const userLogOut = require('./src/routes/logout.routes');
 const resetPassword = require('./src/routes/resetPassword.routes');
 const user = require('./src/routes/user.routes');
+const verification = require('./src/routes/verification.router');
 
 const app = express();
 connectDb();
@@ -26,6 +27,7 @@ app.use('/auth', userAuth);
 app.use('/logout', userLogOut);
 app.use('/reset-password', resetPassword);
 app.use('/user', user);
+app.use('/verify', verification)
 
 app.use(verifyJWT);
 app.use(notFound);

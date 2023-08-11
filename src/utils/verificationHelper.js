@@ -5,7 +5,9 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require('twilio')(accountSid, authToken);
 
 const generateVerificationCode = async () => {
-    let code = Math.random().toString(36).substring(2, 10);
+    const min = 100000;
+    const max = 999999;
+    let code = Math.floor(Math.random() * (max - min + 1)) + min;
     let isCodeExists = await User.findOne({ verificationCode: code });
 
     if (isCodeExists) {
@@ -15,8 +17,8 @@ const generateVerificationCode = async () => {
     return code;
 };
 
-const isEmailVerified = async (numberOrEmail) => {
-    let userVerified = await User.findOne({ numberOrEmail });
+const isEmailVerified = async (mobileNumber) => {
+    let userVerified = await User.findOne({ mobileNumber });
 
     if (userVerified && userVerified.verified) {
         return true
@@ -26,10 +28,11 @@ const isEmailVerified = async (numberOrEmail) => {
 };
 
 const resendVerificationCode = async (req, res) => {
-    const { numberOrEmail } = req.body;
-
+    const { mobileNumber } = req.body;
+    console.log(req)
+    console.log(mobileNumber, ' mobileNumber')
     try {
-        let userVerified = await User.findOne({ numberOrEmail });
+        let userVerified = await User.findOne({ mobileNumber });
 
         if (userVerified) {
 
@@ -38,12 +41,12 @@ const resendVerificationCode = async (req, res) => {
             }
 
             let verificationCode = userVerified.verificationCode;
-            let isEmailSend = await sendVerificationCode(numberOrEmail, verificationCode);
+            let isEmailSend = await sendVerificationCode(mobileNumber, verificationCode);
 
             if (isEmailSend) {
-                return res.status(200).json({ status: true, message: "Code is sended in email" });
+                return res.status(200).json({ status: true, message: "Code is sended in mobile number" });
             } else {
-                return res.status(400).json({ status: false, message: "Code isn't sended in email" });
+                return res.status(400).json({ status: false, message: "Code isn't sended in mobile number" });
             }
 
         } else {
