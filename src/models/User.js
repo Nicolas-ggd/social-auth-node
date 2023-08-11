@@ -7,20 +7,15 @@ const User = new mongoose.Schema(
             type: String,
             require: true,
         },
-        email: {
+        numberOrEmail: {
             type: String,
             required: true,
-            unique: true,
-            lowercase: true
+            unique: true
         },
         password: {
             type: String,
             required: true,
-        },
-        online: {
-            type: Boolean,
-            required: false,
-            default: false
+            minlength: 6
         },
         refresh_token: String,
         ResetPasswordHash: {

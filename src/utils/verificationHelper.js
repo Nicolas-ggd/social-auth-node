@@ -1,5 +1,8 @@
 const nodeMailer = require('nodemailer');
 const User = require('../models/User');
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = require('twilio')(accountSid, authToken);
 
 const generateVerificationCode = async () => {
     let code = Math.random().toString(36).substring(2, 10);
@@ -12,8 +15,8 @@ const generateVerificationCode = async () => {
     return code;
 };
 
-const isEmailVerified = async (email) => {
-    let userVerified = await User.findOne({ email });
+const isEmailVerified = async (numberOrEmail) => {
+    let userVerified = await User.findOne({ numberOrEmail });
 
     if (userVerified && userVerified.verified) {
         return true
@@ -23,10 +26,10 @@ const isEmailVerified = async (email) => {
 };
 
 const resendVerificationCode = async (req, res) => {
-    const { email } = req.body;
+    const { numberOrEmail } = req.body;
 
     try {
-        let userVerified = await User.findOne({ email });
+        let userVerified = await User.findOne({ numberOrEmail });
 
         if (userVerified) {
 
@@ -35,7 +38,7 @@ const resendVerificationCode = async (req, res) => {
             }
 
             let verificationCode = userVerified.verificationCode;
-            let isEmailSend = await sendVerificationCode(email, verificationCode);
+            let isEmailSend = await sendVerificationCode(numberOrEmail, verificationCode);
 
             if (isEmailSend) {
                 return res.status(200).json({ status: true, message: "Code is sended in email" });
@@ -78,6 +81,17 @@ const sendVerificationCode = async (email, verificationCode) => {
     response = true;
 
     return response;
+};
+
+const sendVerificationSMSCode = async (mobile, verificationCode) => {
+    client.messages
+    .create({
+       body: `Your verification Kotoamatsukami code ${verificationCode}`,
+       from: "+14066254463",
+       to: `+995${mobile}`
+     })
+    .then(message => console.log(message, 'message'))
+    .catch((err) => console.log(err))
 };
 
 const verify = async (verificationCode) => {
@@ -129,5 +143,6 @@ module.exports = {
     sendVerificationCode,
     isEmailVerified,
     resendVerificationCode,
-    verify
+    verify,
+    sendVerificationSMSCode
 };

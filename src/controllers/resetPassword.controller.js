@@ -4,30 +4,32 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const generateToken = require('../configs/generateToken');
 const ResetPassword = require('../models/ResetPasswordHash');
+const verificationHelper = require('../utils/verificationHelper');
 
-const randomHaxString = (length) => {
-    return crypto
-        .randomBytes(length)
-        .toString('hex')
-        .slice(0, length)
+const randomHaxString = () => {
+    return Math.random().toString(36).substring(2, 10);
 };
 
 const resetUserPassword = async (req, res) => {
-    const { email } = req.body;
+    const { numberOrEmail } = req.body;
 
     try {
-        if (!email) {
+        if (!numberOrEmail) {
             return res.status(400).json({ message: "Email is requried to reset password" });
         }
 
-        const authUser = await User.findOne({ email });
+        const authUser = await User.findOne({ numberOrEmail });
 
-        const randomToken = randomHaxString(8)
+        if (!authUser) {
+            return res.status(400).json({ message: "Wrong mobile or email, it doesn't exist in database" });
+        }
+
+        const randomToken = randomHaxString(6)
 
         const hexToken = await ResetPassword.create({ hash: randomToken });
 
         await User.updateOne(
-            { email: authUser.email },
+            { numberOrEmail: authUser.numberOrEmail },
             {
                 $set: {
                     ResetPasswordHash: hexToken._id.toString()
@@ -52,13 +54,17 @@ const resetUserPassword = async (req, res) => {
             html: resetPasswordTemplate(resetLink)
         };
 
-        nodeTransporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error)
-            } else {
-                console.log(`Email sent: ${info.response}`)
-            }
-        });
+        if (!numberOrEmail.includes('@gmail.com')){
+            verificationHelper.sendVerificationSMSCode(numberOrEmail, randomToken);
+        } else {
+            nodeTransporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log(error)
+                } else {
+                    console.log(`Email sent: ${info.response}`)
+                }
+            });
+        }
 
         return res.status(200).json({ message: "Reset link sent to your email" })
 
