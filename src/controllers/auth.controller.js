@@ -3,14 +3,14 @@ const generateToken = require('../configs/generateToken');
 const verificationHelper = require('../utils/verificationHelper');
 
 const userAuth = async (req, res) => {
-    const { numberOrEmail, password, verificationCode } = req.body;
+    const { mobileNumber, password, verificationCode } = req.body;
 
     try {
-        if (!numberOrEmail || !password) {
+        if (!mobileNumber || !password) {
             return res.status(400).json({ message: "Email and password are required" });
         }
 
-        const authUser = await User.findOne({ numberOrEmail });
+        const authUser = await User.findOne({ mobileNumber });
 
         await verificationHelper.verify(verificationCode);
         
@@ -42,7 +42,7 @@ const userAuth = async (req, res) => {
             );
 
             await User.updateOne(
-                { numberOrEmail: authUser.numberOrEmail },
+                { mobileNumber: authUser.mobileNumber },
                 {
                     $set: {
                         refresh_token: refresh_token,
@@ -62,7 +62,7 @@ const userAuth = async (req, res) => {
                 _id: authUser._id,
                 access_token: access_token,
                 name: authUser.name,
-                numberOrEmail: authUser.numberOrEmail,
+                mobileNumber: authUser.mobileNumber,
             });
         }
     } catch (error) {

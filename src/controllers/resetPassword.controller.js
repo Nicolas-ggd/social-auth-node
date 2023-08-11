@@ -7,18 +7,20 @@ const ResetPassword = require('../models/ResetPasswordHash');
 const verificationHelper = require('../utils/verificationHelper');
 
 const randomHaxString = () => {
-    return Math.random().toString(36).substring(2, 10);
+    const min = 100000; // Minimum value for a 6-digit number
+    const max = 999999; // Maximum value for a 6-digit number
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
 const resetUserPassword = async (req, res) => {
-    const { numberOrEmail } = req.body;
+    const { mobileNumber } = req.body;
 
     try {
-        if (!numberOrEmail) {
+        if (!mobileNumber) {
             return res.status(400).json({ message: "Email is requried to reset password" });
         }
 
-        const authUser = await User.findOne({ numberOrEmail });
+        const authUser = await User.findOne({ mobileNumber });
 
         if (!authUser) {
             return res.status(400).json({ message: "Wrong mobile or email, it doesn't exist in database" });
@@ -29,7 +31,7 @@ const resetUserPassword = async (req, res) => {
         const hexToken = await ResetPassword.create({ hash: randomToken });
 
         await User.updateOne(
-            { numberOrEmail: authUser.numberOrEmail },
+            { mobileNumber: authUser.mobileNumber },
             {
                 $set: {
                     ResetPasswordHash: hexToken._id.toString()
@@ -54,8 +56,8 @@ const resetUserPassword = async (req, res) => {
             html: resetPasswordTemplate(resetLink)
         };
 
-        if (!numberOrEmail.includes('@gmail.com')){
-            verificationHelper.sendVerificationSMSCode(numberOrEmail, randomToken);
+        if (!mobileNumber.includes('@gmail.com')) {
+            verificationHelper.sendVerificationSMSCode(mobileNumber, randomToken);
         } else {
             nodeTransporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
@@ -141,7 +143,7 @@ const findUserWithToken = async (req, res) => {
             _id: user._id,
             access_token: access_token,
             name: user.name,
-            email: user.email,
+            mobileNumber: user.mobileNumber,
         });
     } catch (error) {
         console.log(error);

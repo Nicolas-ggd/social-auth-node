@@ -7,7 +7,7 @@ const User = new mongoose.Schema(
             type: String,
             require: true,
         },
-        numberOrEmail: {
+        mobileNumber: {
             type: String,
             required: true,
             unique: true
