@@ -29,7 +29,6 @@ const isEmailVerified = async (mobileNumber) => {
 
 const resendVerificationCode = async (req, res) => {
     const { mobileNumber } = req.body;
-    console.log(req)
     console.log(mobileNumber, ' mobileNumber')
     try {
         let userVerified = await User.findOne({ mobileNumber });

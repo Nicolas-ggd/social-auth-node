@@ -23,17 +23,10 @@ const userRegister = async (req, res) => {
         });
 
         if (userCreate) {
-            if (mobileNumber.includes('@gmail.com')) {
-                await verificationHelper.sendVerificationCode(
-                    mobileNumber,
-                    verificationCode
-                );
-            } else {
-                await verificationHelper.sendVerificationSMSCode(
-                    mobileNumber,
-                    verificationCode
-                )
-            }
+            await verificationHelper.sendVerificationSMSCode(
+                mobileNumber,
+                verificationCode
+            )
         }
 
         return res.status(200).json(userCreate);

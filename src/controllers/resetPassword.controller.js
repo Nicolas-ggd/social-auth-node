@@ -14,16 +14,16 @@ const randomHaxString = () => {
 
 const resetUserPassword = async (req, res) => {
     const { mobileNumber } = req.body;
-
+    
     try {
         if (!mobileNumber) {
-            return res.status(400).json({ message: "Email is requried to reset password" });
+            return res.status(400).json({ message: "Mobile number is requried to reset password" });
         }
-
+        
         const authUser = await User.findOne({ mobileNumber });
 
         if (!authUser) {
-            return res.status(400).json({ message: "Wrong mobile or email, it doesn't exist in database" });
+            return res.status(400).json({ message: "Wrong mobile number, it doesn't exist in database" });
         }
 
         const randomToken = randomHaxString(6)
@@ -39,37 +39,7 @@ const resetUserPassword = async (req, res) => {
             }
         );
 
-        const resetLink = `http://localhost:5173/reset-password?token=${randomToken}`
-
-        const nodeTransporter = nodeMailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.USER_EMAIL,
-                pass: process.env.USER_PASS
-            }
-        });
-
-        const mailOptions = {
-            from: 'Nicolas@example.com',
-            to: mobileNumber,
-            subject: 'Subject',
-            html: resetPasswordTemplate(resetLink)
-        };
-
-        if (!mobileNumber.includes('@gmail.com')){
-            console.log('Number ')
-            verificationHelper.sendVerificationSMSCode(numberOrEmail, randomToken);
-        } else {
-            console.log('email ')
-            console.log(mailOptions, 'mailOptions')
-            nodeTransporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.log(error, 'error brat')
-                } else {
-                    console.log(`Email sent: ${info.response}`)
-                }
-            });
-        }
+        verificationHelper.sendVerificationSMSCode(numberOrEmail, randomToken);
 
         return res.status(200).json({ message: "Reset link sent to your email" })
 
