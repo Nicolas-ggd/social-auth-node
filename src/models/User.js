@@ -22,9 +22,9 @@ const User = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "ResetPasswordHash"
         },
-        verificationCode: {
-            type: String,
-            required: true
+        OneTimeCode: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "OneTimeCode"
         },
         verified: {
             type: Boolean,
