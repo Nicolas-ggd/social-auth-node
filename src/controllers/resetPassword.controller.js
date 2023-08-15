@@ -39,36 +39,9 @@ const resetUserPassword = async (req, res) => {
             }
         );
 
-        const resetLink = `http://localhost:5173/reset-password?token=${randomToken}`
+        verificationHelper.sendVerificationSMSCode(mobileNumber, randomToken);
 
-        const nodeTransporter = nodeMailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.USER_EMAIL,
-                pass: process.env.USER_PASS
-            }
-        });
-
-        const mailOptions = {
-            from: 'Nicolas@example.com',
-            to: 'ggdnicolas@gmail.com',
-            subject: 'Subject',
-            html: resetPasswordTemplate(resetLink)
-        };
-
-        if (!mobileNumber.includes('@gmail.com')) {
-            verificationHelper.sendVerificationSMSCode(mobileNumber, randomToken);
-        } else {
-            nodeTransporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.log(error)
-                } else {
-                    console.log(`Email sent: ${info.response}`)
-                }
-            });
-        }
-
-        return res.status(200).json({ message: "Reset link sent to your email" })
+        return res.status(200).json({ message: "Reset code sent to your mobile number" });
 
     } catch (error) {
         return res.status(400).json(error);

@@ -2,12 +2,15 @@ const User = require('../models/User');
 const { sendVerificationSMSCode, randomHaxNumber } = require('../utils/verificationHelper');
 
 const verify = async (req, res) => {
-    const verificationCode = req.body;
+    const { verificationCode } = req.body;
+    
+    console.log(verificationCode, 'code')
 
     try {
         await User.findOneAndUpdate(
             { verificationCode },
-            { verified: true }
+            { $set: { verified: true } },
+            { new: true }
         );
 
         res.status(200).json({ message: "User verified successfuly" });
@@ -18,7 +21,7 @@ const verify = async (req, res) => {
 
 const resendVerificationCode = async (req, res) => {
     const { mobileNumber } = req.body;
- 
+
     try {
         let userVerified = await User.findOne({ mobileNumber });
 

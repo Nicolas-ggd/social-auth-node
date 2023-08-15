@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const OneTimeCode = require('../models/OneTimeCode');
 const verificationHelper = require('../utils/verificationHelper');
 
 const userRegister = async (req, res) => {
@@ -8,32 +9,39 @@ const userRegister = async (req, res) => {
         const existedUser = await User.findOne({ mobileNumber });
 
         if (existedUser) {
-            res.status(400).json({
+            return res.status(400).json({
                 message: "Player already exists!"
             });
         }
 
         const verificationCode = await verificationHelper.generateVerificationCode();
 
+        const oneTimeSMSCode = await OneTimeCode.create({ code: verificationCode });
+        
         const userCreate = await User.create({
             name,
             mobileNumber,
             password,
-            verificationCode
+            verificationCode,
+            oneTimeSMSCode
         });
 
         if (userCreate) {
-            if (mobileNumber.includes('@gmail.com')) {
-                await verificationHelper.sendVerificationCode(
-                    mobileNumber,
-                    verificationCode
-                );
-            } else {
-                await verificationHelper.sendVerificationSMSCode(
-                    mobileNumber,
-                    verificationCode
-                )
-            }
+
+            await User.updateOne(
+                { _id: userCreate._id },
+                {
+                    $set: {
+                        OneTimeCode: oneTimeSMSCode._id.toString()
+                    }
+                }
+            )
+
+            await verificationHelper.sendVerificationSMSCode(
+                mobileNumber,
+                verificationCode
+            )
+
         }
 
         return res.status(200).json(userCreate);
