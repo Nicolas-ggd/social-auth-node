@@ -1,21 +1,33 @@
 const User = require('../models/User');
+const OneTimeCode = require('../models/OneTimeCode');
 const { sendVerificationSMSCode, randomHaxNumber } = require('../utils/verificationHelper');
 
 const verify = async (req, res) => {
     const { verificationCode } = req.body;
-    
-    console.log(verificationCode, 'code')
+
+    const oneTimeSMS = await OneTimeCode.findOne({ code: verificationCode });
+
+    if (!oneTimeSMS) {
+        return res.status(400).json({ message: "User verified failed" });
+    }
 
     try {
-        await User.findOneAndUpdate(
-            { verificationCode },
-            { $set: { verified: true } },
-            { new: true }
-        );
+        const user = await User.findOne({ OneTimeCode: oneTimeSMS._id });
 
-        res.status(200).json({ message: "User verified successfuly" });
+        if (user) {
+            user.verified = true;
+
+            await user.save();
+        }
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
     } catch (error) {
         console.log(error);
+        res.status(500).json({ message: "Failed user verification" });
     }
 };
 
