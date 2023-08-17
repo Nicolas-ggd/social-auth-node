@@ -17,6 +17,10 @@ const User = new mongoose.Schema(
             required: true,
             minlength: 6
         },
+        verified: {
+            type: Boolean,
+            default: false
+        },
         refresh_token: String,
         ResetPasswordHash: {
             type: mongoose.Schema.Types.ObjectId,
@@ -25,10 +29,6 @@ const User = new mongoose.Schema(
         OneTimeCode: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "OneTimeCode"
-        },
-        verified: {
-            type: Boolean,
-            default: false
         }
     },
     {

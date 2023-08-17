@@ -1,26 +1,19 @@
 const User = require('../models/User');
 const generateToken = require('../configs/generateToken');
-const verificationHelper = require('../utils/verificationHelper');
 
 const userAuth = async (req, res) => {
-    const { mobileNumber, password, verificationCode } = req.body;
+    const { mobileNumber, password } = req.body;
 
     try {
         if (!mobileNumber || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
+            return res.status(400).json({ message: "Mobile number and password are required" });
         }
 
         const authUser = await User.findOne({ mobileNumber });
 
-        await verificationHelper.verify(verificationCode);
-        
-        if (!authUser.verified) {
-            return res.status(401).json({ message: "Your account is not verified, please check your email and verify account." });
-        }
-
         if (!authUser) return res.status(401).json({ message: "Unauthorized" });
 
-        if (authUser && (await authUser.matchPassword(password))) {
+        if (authUser && (authUser.matchPassword(password))) {
             const access_token = generateToken(
                 {
                     UserInfo: {
@@ -66,6 +59,7 @@ const userAuth = async (req, res) => {
             });
         }
     } catch (error) {
+        console.log(error)
         return res.status(500).json(error)
     }
 };
